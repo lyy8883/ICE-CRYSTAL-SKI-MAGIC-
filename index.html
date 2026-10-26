@@ -119,7 +119,7 @@ const bigQuiz=[
 ];
 const shopIcons=["❄️","🎀","🦋","💗","🐰","🐻‍❄️","🌟","🌙","💎","🧤","🧣","⛷️","⭐","🌈","🩵","💜","🐧","🦊","🌸","☁️"];
 const shopNames=["冰晶","星光","薄荷","極光","雪兔","月光","夢幻","水晶","雲朵","蝴蝶結","小熊","雪花","紫霧","銀河","愛心","雪球","星河","鈴蘭","雪狐","糖霜"];
-const shop250=Array.from({length:250},(_,i)=>({icon:shopIcons[i%20],name:shopNames[i%20]+"收藏品 "+String(i+1).padStart(3,"0"),cost:1+i%12}));
+const shop250=Array.from({length:250},(_,i)=>({icon:shopIcons[i%20],name:shopNames[i%20]+"收藏品 "+String(i+1).padStart(3,"0"),cost:([10,20,30,40,50,60,70,80,90,100][i%10])}));
 function customPage(p){
  const x=prof(),date=x.selectedDate||today();let h="";
  if(p==="calendar"){
