@@ -82,6 +82,86 @@ const ex=document.getElementById('export');if(ex)ex.onclick=()=>{const blob=new 
 const im=document.getElementById('importFile');if(im)im.onchange=async()=>{try{const obj=JSON.parse(await im.files[0].text());if(!obj||typeof obj!=='object')throw Error();data=obj;save();openPage(page);alert('備份已還原。')}catch(e){alert('無法讀取這個備份檔。')}};
 const re=document.getElementById('reset');if(re)re.onclick=()=>{if(confirm('確定清除這個瀏覽器保存的所有滑雪學院紀錄？')){data={};ensure('小藍');ensure('小優');save();openPage('today')}};
 }
+
+/* Enhanced academy modules */
+const oldOpenPage=openPage;
+const bigQuiz=[
+["初學者應在哪裡練習？",["教練指定的初級區","任何陡坡","人最多的雪道"],0],
+["滑雪時應戴什麼保護頭部？",["合適的滑雪頭盔","一般帽子","不需要"],0],
+["感到疼痛或頭暈時？",["停止並告訴大人／教練","硬撐下去","加快速度"],0],
+["休息時應停在哪裡？",["不妨礙別人且容易被看見處","坡道正中央","轉彎盲區"],0],
+["雪鞋太緊或腳麻時？",["停下請大人或工作人員檢查","忍耐一整天","自行亂調後繼續"],0],
+["遇到雪道標示應該？",["遵守標示與教練指示","忽略標示","跟陌生人走"],0],
+["滑雪前先確認什麼？",["裝備尺寸與扣具","只有顏色","不用檢查"],0],
+["如何增加滑雪難度？",["由教練依能力逐步安排","直接挑最陡的坡","追最快的人"],0],
+["滑雪時視線應該？",["留意前方與周圍","一直看雪板","閉眼滑"],0],
+["天冷時應注意？",["保暖、補水並告知身體狀況","不喝水","脫掉手套"],0],
+["想練新技巧時？",["先問教練並在合適區域練習","自己找陡坡試","在床上練翻轉"],0],
+["運動時需要補水嗎？",["需要，休息時補水","完全不需要","非常口渴才喝"],0],
+["有人摔倒時怎麼辦？",["先確保安全並通知教練","衝過去造成碰撞","嘲笑對方"],0],
+["暖身的目的？",["讓身體逐漸準備活動","先讓自己疲累","沒有用"],0],
+["組間休息有什麼作用？",["恢復呼吸與動作品質","浪費時間","一定要取消"],0],
+["好的訓練重點是？",["安全、正確與持續進步","比誰最累","越痛越有效"],0],
+["頭盔如何選擇？",["尺寸合適並依工作人員建議","越大越好","戴帽子就好"],0],
+["雪道擁擠時？",["放慢、保持距離並聽教練","突然急轉","追趕別人"],0],
+["滑雪前要睡飽嗎？",["要，休息是準備的一部分","不必睡覺","越累越能練"],0],
+["裝備有損壞時？",["告訴大人或工作人員","繼續使用","自己忽略"],0],
+["練習時動作不穩？",["降低難度並請教練指導","加快速度","閉眼完成"],0],
+["初學者適合追求什麼？",["能控制速度並安全停下","最快速度","最陡雪道"],0],
+["手套的作用之一？",["保暖並保護雙手","增加速度","代替頭盔"],0],
+["看教學影片等於會滑雪嗎？",["不等於，仍要實際受教練指導","完全等於","不用上課"],0],
+["體能訓練時不舒服？",["停止並告訴大人","硬撐到底","加做一倍"],0],
+["做椅子坐站應該？",["動作平穩，膝蓋舒適","猛衝猛坐","閉眼做"],0],
+["平衡練習應在哪裡？",["平穩防滑地面並靠近穩固支撐","床邊高處","滑溜地板"],0],
+["加練的原則？",["依時間與狀態安排，保留休息","每天練到力竭","不休息"],0],
+["教練指示和朋友挑戰不同時？",["遵守教練與安全規則","聽朋友冒險","自己選危險路線"],0],
+["滑雪旅行準備要包含？",["裝備、安全知識、體能與休息","只買裝飾","只比輸贏"],0]
+];
+const shopIcons=["❄️","🎀","🦋","💗","🐰","🐻‍❄️","🌟","🌙","💎","🧤","🧣","⛷️","⭐","🌈","🩵","💜","🐧","🦊","🌸","☁️"];
+const shopNames=["冰晶","星光","薄荷","極光","雪兔","月光","夢幻","水晶","雲朵","蝴蝶結","小熊","雪花","紫霧","銀河","愛心","雪球","星河","鈴蘭","雪狐","糖霜"];
+const shop250=Array.from({length:250},(_,i)=>({icon:shopIcons[i%20],name:shopNames[i%20]+"收藏品 "+String(i+1).padStart(3,"0"),cost:1+i%12}));
+function customPage(p){
+ const x=prof(),date=x.selectedDate||today();let h="";
+ if(p==="calendar"){
+ const base=new Date();base.setDate(1);base.setMonth(base.getMonth()+(x.monthOffset||0));const y=base.getFullYear(),m=base.getMonth(),count=new Date(y,m+1,0).getDate(),first=new Date(y,m,1).getDay(),notes=x.calendarNotes||{};
+ h='<h2>🪄 手杖風魔法行事曆</h2><p>假日一定練；平日依時間決定是否加練。加練 +2 分，每天只計一次。點日期格可填三個備註。</p><div class="row"><button class="btn alt" id="monthPrev">← 上月</button><b>'+y+' 年 '+(m+1)+' 月</b><button class="btn alt" id="monthNext">下月 →</button></div><div class="calendar-grid">'+["日","一","二","三","四","五","六"].map(v=>'<div class="day-head">'+v+'</div>').join("")+Array.from({length:first},()=>"<div></div>").join("")+Array.from({length:count},(_,i)=>{const d=y+"-"+String(m+1).padStart(2,"0")+"-"+String(i+1).padStart(2,"0"),n=notes[d]||{};return '<button class="day-cell '+(date===d?"selected":"")+'" data-date="'+d+'">'+(i+1)+(n.choice==="extra"?'<span class="mark">⭐ 加練 +2</span>':n.choice==="rest"?'<span class="mark">☁️ 不加練</span>':"")+(n.n1||n.n2||n.n3?'<span class="mark">📝備註</span>':"")+'</button>'}).join("")+'</div><div class="item"><h3>🎀 '+date+'</h3><div class="row"><button class="btn mint" id="doExtra">⭐ 加練 +2 分</button><button class="btn alt" id="doRest">☁️ 不加練</button></div><p>備註一</p><textarea id="n1" placeholder="訓練安排">'+((notes[date]||{}).n1||"")+'</textarea><p>備註二</p><textarea id="n2" placeholder="裝備／行程">'+((notes[date]||{}).n2||"")+'</textarea><p>備註三</p><textarea id="n3" placeholder="心情／其他">'+((notes[date]||{}).n3||"")+'</textarea><button class="btn" id="saveNotes">保存這一天</button></div>';
+ }else if(p==="quiz"){
+ let pool=bigQuiz.map((_,i)=>i).filter(i=>!(x.quizSeen||[]).includes(i));if(!pool.length){x.quizSeen=[];pool=bigQuiz.map((_,i)=>i)}const idx=pool[Math.floor(Math.random()*pool.length)];x.activeQuiz=idx;
+ h='<h2>🎮 冰晶挑戰</h2><span class="badge">30 題題庫 · 本輪不重複</span><div class="item"><b>'+bigQuiz[idx][0]+'</b></div><div class="list">'+bigQuiz[idx][1].map((a,i)=>'<button class="tile" data-newanswer="'+i+'" style="min-height:auto">'+String.fromCharCode(65+i)+' · '+a+'</button>').join("")+'</div><div id="qmsg"></div>';
+ }else if(p==="fitness"){
+ const tasks=["🔥 暖身：原地踏步 3 分鐘","🦵 椅子坐站 3 組 × 10 次","⛷️ 側向踏步 3 組 × 45 秒","💪 靠牆伏地挺身 3 組 × 10 次","🧊 小腿抬起 3 組 × 12 次","⚖️ 扶穩支撐物單腳平衡，每側 3 × 20 秒","🏃 原地快步 4 組 × 30 秒，組間休息","🌙 收操伸展 3 分鐘"];
+ h='<h2>🧊 冰雪體能室 · 挑戰課</h2><p>約 20–25 分鐘。每組間休息 30–60 秒，動作穩定比速度重要。疼痛、頭暈或呼吸不舒服就停止並告訴大人；不需練到力竭。</p><div class="list">'+tasks.map((t,i)=>'<div class="item"><label><input type="checkbox" data-newfit="'+i+'" '+(x.tasks["newfit_"+today()+"_"+i]?"checked":"")+'><span>'+t+'</span></label></div>').join("")+'</div><button class="btn" id="saveNewFit">保存體能紀錄</button>';
+ }else if(p==="garden"){
+ h='<h2>⭐ 星星收藏屋 · 250 件</h2><p>星星：'+(x.stars||0)+' ⭐　已收藏 '+(x.decor||[]).length+' 件。已移除冰雪花園。</p><input class="field" id="shopSearch" placeholder="搜尋 250 件收藏品"><div class="shop-grid">'+shop250.map(it=>'<button class="shop-item" data-shop="'+it.name+'" data-cost="'+it.cost+'" '+((x.decor||[]).some(v=>v.split("|")[1]===it.name)?"disabled":"")+'><span>'+it.icon+'</span><b>'+it.name+'</b><small>'+it.cost+' ⭐</small></button>').join("")+'</div><h3>🎀 已收藏</h3><p style="font-size:22px;line-height:1.8">'+((x.decor||[]).map(v=>v.split("|")[0]).join(" ")||"尚未收藏")+'</p>';
+ }else if(p==="quest"){
+ h='<h2>🎡 夢幻任務轉盤與闖關</h2><p>轉盤會實際旋轉，抽出一項體能任務。依能力完成，保留休息。</p><div class="spinwheel" id="wheel">❄️</div><div class="item" style="text-align:center"><h3 id="questResult">'+(x.quest||"旋轉轉盤抽任務！")+'</h3><button class="btn alt" id="spinReal">🎡 旋轉轉盤</button><button class="btn mint" id="finishReal">完成任務 +1 ⭐</button></div>';
+ }else if(p==="today"){
+ const tasks=["🔥 暖身：原地踏步＋手臂繞圈 3 分鐘（完成 +1）","🦵 基礎訓練：椅子坐站 3 組 × 10 次（完成 +2）","⛷️ 側向踏步 3 組 × 40 秒","💪 靠牆伏地挺身 3 組 × 8–12 次","🧊 小腿抬起 2 組 × 12 次","⚖️ 扶穩支撐物單腳平衡，每側 3 次","🌙 收操伸展 3 分鐘（完成 +1）"];
+ h='<h2>📅 今日課表 · 體能挑戰</h2><p>'+today()+' · 各項完成後自動計分，暖身 +1、基礎訓練 +2、收操 +1。按能力完成並休息。</p><div class="list">'+tasks.map((t,i)=>'<div class="item"><label><input type="checkbox" data-newtoday="'+i+'" '+(x.tasks["newtoday_"+today()+"_"+i]?"checked":"")+'><span>'+t+'</span></label></div>').join("")+'</div><h3>✍️ 加強目標</h3><textarea id="extra2" placeholder="自由填寫加強目標">'+(x.extra||"")+'</textarea><h3>🌙 今日回顧</h3><textarea id="review2" placeholder="今天的感受與備註">'+(x.review||"")+'</textarea><button class="btn" id="saveNewToday">保存今日紀錄</button>';
+ }else return false;
+ content.innerHTML=h;
+ const persist=()=>{save();};
+ const addChoice=choice=>{x.calendarNotes=x.calendarNotes||{};const old=x.calendarNotes[date]||{};if(old.choice==="extra"&&choice!=="extra")x.stars=Math.max(0,(x.stars||0)-2);if(old.choice!=="extra"&&choice==="extra")x.stars=(x.stars||0)+2;x.calendarNotes[date]={...old,choice};persist();customPage("calendar")};
+ const bind=(id,fn)=>{const e=document.getElementById(id);if(e)e.onclick=fn};
+ bind("monthPrev",()=>{x.monthOffset=(x.monthOffset||0)-1;persist();customPage("calendar")});bind("monthNext",()=>{x.monthOffset=(x.monthOffset||0)+1;persist();customPage("calendar")});
+ content.querySelectorAll("[data-date]").forEach(e=>e.onclick=()=>{x.selectedDate=e.dataset.date;persist();customPage("calendar")});
+ bind("doExtra",()=>addChoice("extra"));bind("doRest",()=>addChoice("rest"));
+ bind("saveNotes",()=>{x.calendarNotes=x.calendarNotes||{};x.calendarNotes[date]={...(x.calendarNotes[date]||{}),n1:document.getElementById("n1").value,n2:document.getElementById("n2").value,n3:document.getElementById("n3").value};persist();customPage("calendar")});
+ content.querySelectorAll("[data-newanswer]").forEach(e=>e.onclick=()=>{const q=bigQuiz[x.activeQuiz],msg=document.getElementById("qmsg");if(+e.dataset.newanswer===q[2]){x.stars=(x.stars||0)+1;x.quizSeen=x.quizSeen||[];x.quizSeen.push(x.activeQuiz);persist();msg.textContent="答對！+1 ⭐";content.querySelectorAll("[data-newanswer]").forEach(b=>b.disabled=true);const n=document.createElement("button");n.className="btn";n.textContent="下一題";n.onclick=()=>customPage("quiz");msg.appendChild(n)}else msg.textContent="再試一次，想想哪個做法最安全。"});
+ content.querySelectorAll("[data-newfit]").forEach(e=>e.onchange=()=>{x.tasks["newfit_"+today()+"_"+e.dataset.newfit]=e.checked;persist()});bind("saveNewFit",()=>alert(save()?"體能紀錄已保存！":"保存失敗"));
+ content.querySelectorAll("[data-shop]").forEach(e=>e.onclick=()=>{if((x.decor||[]).some(v=>v.split("|")[1]===e.dataset.shop))return;if((x.stars||0)<+e.dataset.cost)return alert("星星不足，先完成訓練或答題。");x.stars-=+e.dataset.cost;x.decor=x.decor||[];x.decor.push(e.querySelector("span").textContent+"|"+e.dataset.shop);persist();customPage("garden")});
+ bind("shopSearch",()=>{});const search=document.getElementById("shopSearch");if(search)search.oninput=()=>content.querySelectorAll("[data-shop]").forEach(e=>e.style.display=e.dataset.shop.toLowerCase().includes(search.value.toLowerCase())?"":"none");
+ const workout=["椅子坐站 3 組 × 10 次","側向踏步 3 組 × 45 秒","靠牆伏地挺身 3 組 × 10 次","小腿抬起 3 組 × 12 次","原地快步 4 組 × 30 秒（組間休息）","扶穩支撐物單腳平衡，每側 3 × 20 秒","完成暖身、體能、收操小循環"];
+ bind("spinReal",()=>{x.quest=workout[Math.floor(Math.random()*workout.length)];const w=document.getElementById("wheel");w.style.transform="rotate("+(1440+Math.floor(Math.random()*720))+"deg)";document.getElementById("questResult").textContent="🎯 "+x.quest;persist()});
+ bind("finishReal",()=>{if(!x.quest)return alert("先旋轉轉盤抽任務！");x.stars=(x.stars||0)+1;x.quest="";persist();customPage("quest")});
+ content.querySelectorAll("[data-newtoday]").forEach(e=>e.onchange=()=>{const i=+e.dataset.newtoday,key="newtoday_"+today()+"_"+i,was=!!x.tasks[key],points=i===0||i===6?1:i===1?2:0;x.tasks[key]=e.checked;if(e.checked&&!was)x.stars=(x.stars||0)+points;else if(!e.checked&&was)x.stars=Math.max(0,(x.stars||0)-points);persist()});
+ bind("saveNewToday",()=>{x.extra=document.getElementById("extra2").value;x.review=document.getElementById("review2").value;alert(save()?"今日紀錄已保存！":"保存失敗")});
+}
+openPage=function(p){if(["calendar","quiz","fitness","garden","quest","today"].includes(p)){page=p;document.getElementById("panel").classList.add("open");customPage(p);document.getElementById("panel").scrollIntoView({behavior:"smooth",block:"start"});renderStats()}else oldOpenPage(p)};
+/* Autosave all text fields and show a clear save status */
+document.addEventListener("input",e=>{if(e.target.matches("textarea,input.field")){const x=prof();if(e.target.id==="kidsProgress")x.teamProgress.kids=e.target.value;if(e.target.id==="parentsProgress")x.teamProgress.parents=e.target.value;if(e.target.id==="intelNote")x.pendingIntelNote=e.target.value;if(e.target.id==="intelSource")x.pendingIntelSource=e.target.value;if(e.target.id==="extra")x.extra=e.target.value;if(e.target.id==="review")x.review=e.target.value;if(e.target.id==="extra2")x.extra=e.target.value;if(e.target.id==="review2")x.review=e.target.value;try{localStorage.setItem(KEY,JSON.stringify(data))}catch(err){}}});
+/* Make the spy camp's explicit save buttons persist and refresh the archive reliably. */
+
 document.querySelectorAll('.profile').forEach(b=>b.onclick=()=>{current=b.dataset.profile;document.querySelectorAll('.profile').forEach(x=>x.classList.toggle('active',x===b));renderStats();if(document.getElementById('panel').classList.contains('open'))openPage(page)});
 document.querySelectorAll('.tile[data-page]').forEach(b=>b.onclick=()=>openPage(b.dataset.page));
 ensure('小藍');ensure('小優');renderStats();openPage('today');
